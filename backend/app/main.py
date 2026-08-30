@@ -21,6 +21,7 @@ from backend.app.api.analytics import router as analytics_router
 from backend.app.api.notifications import router as notifications_router
 from backend.app.api.audit import router as audit_router
 from backend.app.api.websockets import router as ws_router
+from backend.app.db.mongo import init_mongo, close_mongo
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -49,8 +50,12 @@ async def lifespan(app: FastAPI):
     finally:
         db.close()
         
+    # Initialize optional MongoDB Atlas connection
+    await init_mongo()
+
     yield
-    # Shutdown logic if any
+    # Shutdown logic
+    await close_mongo()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

@@ -16,6 +16,16 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./pulsebug.db")
     SYNC_DATABASE_URL: str = os.getenv("SYNC_DATABASE_URL", "sqlite:///./pulsebug.db")
     
+    # MongoDB Atlas (Optional NoSQL & Event Store)
+    MONGODB_URL: str = os.getenv("MONGODB_URL", "")
+    MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "pulsebug")
+
+    # Email / SMTP
+    SMTP_HOST: str = os.getenv("SMTP_HOST", "")
+    SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
+    SMTP_USER: str = os.getenv("SMTP_USER", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
+    
     # CORS
     CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
