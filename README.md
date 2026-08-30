@@ -129,19 +129,14 @@ PulseBug is structured with clean separation of concerns:
 ### 9. Smart Natural Language Search (`/api/v1/ai/nl-search`)
 - Converts conversational queries like *"Show critical authentication bugs from last 30 days"* into structured filter tags.
 
----
+## 4. Core Capabilities Overview
 
-## 4. Marking Rubric Mapping
-
-| Evaluation Rubric Area | Max Marks | Target Achieved | Implementation Evidence |
-| :--- | :---: | :---: | :--- |
-| **1. Problem Understanding & Core Functionality** | **20** | **20/20** | Complete bug lifecycle (`NEW` → `TRIAGED` → `ASSIGNED` → `IN_DEV` → `CODE_REVIEW` → `TESTING` → `RESOLVED` → `VERIFIED` → `CLOSED`), threaded comments, attachments, relations, full audit trail, and role-based access. |
-| **2. Innovation & Differentiation** | **20** | **20/20** | 7 AI engines (Triage, Duplicate detection, Quality scorer, Step generator, Smart assignment, Priority impact scoring, NL search), automated Git PR workflow, and Project Health Engine. |
-| **3. Technical Implementation** | **15** | **15/15** | Modular FastAPI backend, React 19 + TypeScript frontend, SQLAlchemy Async ORM, WebSockets pub/sub, AI provider abstraction layer, clean database indexing, and comprehensive Pytest suite. |
-| **4. UX & Accessibility** | **15** | **15/15** | Dark/Light mode with instant toggle, multi-channel accessibility indicators (icon + text + border, not color alone), keyboard navigation (`Ctrl+K` command palette), and responsive layout. |
-| **5. Performance & Reliability / Demo Quality** | **20** | **20/20** | Paginated API queries, database indexes, offline-capable AI engine with Gemini pluggability, 65+ realistic seed bugs across 4 projects, and interactive 1-click Academic Demo Hub. |
-| **6. Documentation** | **10** | **10/10** | Detailed problem deconstruction, architecture diagrams, database schemas, REST API documentation, test strategy, and live demo script. |
-| **TOTAL** | **100** | **100/100** | **Comprehensive Full-Scope Production Platform** |
+- **Full Defect Lifecycle Management**: End-to-end bug tracking (`OPEN` → `IN_DEV` → `CODE_REVIEW` → `QA_TESTING` → `VERIFIED` → `CLOSED`), threaded discussions, file attachments, and immutable audit logs.
+- **Workflow State Machine**: Automated Git state transitions linked with branches, PRs, merges, and deployments.
+- **Real-Time Collaboration**: WebSocket broadcasts delivering live desktop notifications across engineering teams.
+- **Enterprise Security**: Role-based access control, cryptographic SHA-256 password security, JWT bearer authorization, and 6-digit email OTP verification.
+- **Stability & SLA Analytics**: Quantitative Project Health Engine (0–100) and SLA countdown timers across P1–P4 priorities.
+- **High-Performance Full-Stack Architecture**: Async FastAPI backend with SQLAlchemy and MongoDB Atlas support paired with a modern Vite + React 18 frontend.
 
 ---
 
@@ -179,9 +174,9 @@ Reported ──► AI Triage ──► In Development ──► Ready for Testin
 
 ---
 
-## 6. Live Academic Demonstration Script (10 Steps)
+## 6. Interactive Feature Walkthrough (10 Steps)
 
-Follow the 10-step evaluation workflow to experience the platform capabilities:
+Follow the 10-step walkthrough to experience the platform capabilities:
 
 1. **Step 1 — Project Health Dashboard**: Open Analytics page. Review live Health Score (e.g. 78/100), Critical defects count, Overdue SLAs, and diagnostic root cause warnings.
 2. **Step 2 — Create a Messy Bug Report**: Click **Report Issue**. Type: *"I opened the site and login worked but when I refreshed the dashboard it logged me out."*
