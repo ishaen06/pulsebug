@@ -49,12 +49,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   useEffect(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // Connect directly to backend port 8000 in dev or current host
-    const host = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? `${window.location.hostname}:8000`
-      : window.location.host;
-    const wsUrl = `${protocol}//${host}/ws`;
+    let wsUrl: string;
+    if (import.meta.env.VITE_WS_URL) {
+      wsUrl = import.meta.env.VITE_WS_URL;
+    } else if (import.meta.env.VITE_API_URL) {
+      const backendUrl = import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+      const wsProtocol = backendUrl.startsWith('https:') ? 'wss:' : 'ws:';
+      const hostPart = backendUrl.replace(/^https?:\/\//, '');
+      wsUrl = `${wsProtocol}//${hostPart}/ws`;
+    } else {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? `${window.location.hostname}:8000`
+        : window.location.host;
+      wsUrl = `${protocol}//${host}/ws`;
+    }
 
     let reconnectTimer: any;
 
