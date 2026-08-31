@@ -177,7 +177,16 @@ async def list_bugs(
         conditions.append(Bug.created_at >= since_time)
         
     if q and q.strip():
-        terms = [t.strip() for t in q.split() if len(t.strip()) > 1]
+        stop_words = {
+            "in", "on", "at", "for", "to", "with", "and", "or", "a", "an", "the",
+            "is", "are", "was", "were", "bug", "bugs", "issue", "issues", "defect",
+            "defects", "show", "find", "list", "me", "all", "get", "of", "from", "which"
+        }
+        raw_terms = [t.strip() for t in q.replace('"', '').replace("'", "").split()]
+        terms = [t for t in raw_terms if len(t) > 1 and t.lower() not in stop_words]
+        if not terms and raw_terms:
+            terms = raw_terms  # Fallback if query was only short words
+            
         if terms:
             term_conditions = []
             for term in terms:
@@ -187,7 +196,9 @@ async def list_bugs(
                     Bug.description.ilike(pattern),
                     Bug.bug_key.ilike(pattern),
                     Bug.component.ilike(pattern),
-                    Bug.category.ilike(pattern)
+                    Bug.category.ilike(pattern),
+                    Bug.labels.ilike(pattern),
+                    Bug.assignee.has(User.full_name.ilike(pattern))
                 ))
             conditions.append(and_(*term_conditions))
         

@@ -70,6 +70,16 @@ export const IssuesPage: React.FC<IssuesPageProps> = ({
     }
   }, [initialViewMode]);
 
+  // Debounced live search query
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 200);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   const fetchBugs = async () => {
     setLoading(true);
     try {
@@ -84,7 +94,7 @@ export const IssuesPage: React.FC<IssuesPageProps> = ({
         min_overdue_days: minOverdueDays || undefined,
         min_overdue_hours: minOverdueHours || undefined,
         is_stale: filterStale ? true : undefined,
-        q: searchQuery.trim() || undefined
+        q: debouncedSearch.trim() || undefined
       };
       const data = await api.getBugs(params);
       setBugs(data);
@@ -99,7 +109,7 @@ export const IssuesPage: React.FC<IssuesPageProps> = ({
 
   useEffect(() => {
     fetchBugs();
-  }, [currentProject, selectedStatus, selectedPriority, selectedSeverity, selectedComponent, selectedAssignee, filterOverdue, minOverdueDays, minOverdueHours, filterStale]);
+  }, [currentProject, selectedStatus, selectedPriority, selectedSeverity, selectedComponent, selectedAssignee, filterOverdue, minOverdueDays, minOverdueHours, filterStale, debouncedSearch]);
 
   useEffect(() => {
     if (lastEvent) {
