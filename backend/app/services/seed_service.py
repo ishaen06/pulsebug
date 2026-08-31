@@ -8,9 +8,9 @@ from backend.app.db.models import (
 )
 from backend.app.services.sla_service import calculate_sla_due_date, evaluate_sla_status
 
-def seed_database(db: Session):
-    # Check if already seeded
-    if db.query(User).first():
+def seed_database(db: Session, force: bool = False):
+    # Check if already seeded with bugs
+    if not force and db.query(Bug).count() > 0:
         return
 
     now = datetime.now(timezone.utc)
@@ -71,19 +71,23 @@ def seed_database(db: Session):
     
     users = {}
     for u in users_data:
-        user_obj = User(
-            email=u["email"],
-            full_name=u["full_name"],
-            hashed_password=get_password_hash("password123"),
-            role=u["role"],
-            avatar_url=u["avatar_url"],
-            skills=json.dumps(u["skills"]),
-            active_status=u["active_status"],
-            created_at=now - timedelta(days=60)
-        )
-        db.add(user_obj)
-        db.flush()
-        users[u["email"]] = user_obj
+        existing_user = db.query(User).filter_by(email=u["email"]).first()
+        if existing_user:
+            users[u["email"]] = existing_user
+        else:
+            user_obj = User(
+                email=u["email"],
+                full_name=u["full_name"],
+                hashed_password=get_password_hash("password123"),
+                role=u["role"],
+                avatar_url=u["avatar_url"],
+                skills=json.dumps(u["skills"]),
+                active_status=u["active_status"],
+                created_at=now - timedelta(days=60)
+            )
+            db.add(user_obj)
+            db.flush()
+            users[u["email"]] = user_obj
 
     # ----------------------------------------------------------------------
     # 2. CREATE PROJECTS
@@ -125,18 +129,22 @@ def seed_database(db: Session):
     
     projects = {}
     for p in projects_data:
-        proj_obj = Project(
-            key=p["key"],
-            name=p["name"],
-            description=p["description"],
-            lead_id=p["lead"].id,
-            components=json.dumps(p["components"]),
-            environments=json.dumps(p["environments"]),
-            created_at=now - timedelta(days=50)
-        )
-        db.add(proj_obj)
-        db.flush()
-        projects[p["key"]] = proj_obj
+        existing_proj = db.query(Project).filter_by(key=p["key"]).first()
+        if existing_proj:
+            projects[p["key"]] = existing_proj
+        else:
+            proj_obj = Project(
+                key=p["key"],
+                name=p["name"],
+                description=p["description"],
+                lead_id=p["lead"].id,
+                components=json.dumps(p["components"]),
+                environments=json.dumps(p["environments"]),
+                created_at=now - timedelta(days=50)
+            )
+            db.add(proj_obj)
+            db.flush()
+            projects[p["key"]] = proj_obj
 
     # ----------------------------------------------------------------------
     # 3. CREATE REALISTIC BUGS (60+ across projects)
@@ -454,6 +462,12 @@ def seed_database(db: Session):
         reporter = users[t["reporter"]]
         assignee = users[t["assignee"]] if t.get("assignee") else None
         
+        bug_key = f"{proj.key}-{t['num']}"
+        existing_bug = db.query(Bug).filter_by(bug_key=bug_key).first()
+        if existing_bug:
+            created_bugs.append(existing_bug)
+            continue
+        
         created_time = now - timedelta(days=t.get("days_ago", 5), hours=t.get("hours_ago", 0))
         resolved_time = now - timedelta(days=t.get("resolved_days_ago", 2)) if t.get("resolved_days_ago") else None
         due_date = calculate_sla_due_date(t["prio"], created_time)
@@ -461,7 +475,7 @@ def seed_database(db: Session):
         sla_info = evaluate_sla_status(created_time, due_date, t["status"], resolved_time)
         
         bug = Bug(
-            bug_key=f"{proj.key}-{t['num']}",
+            bug_key=bug_key,
             project_id=proj.id,
             title=t["title"],
             description=t["desc"],
@@ -527,8 +541,14 @@ def seed_database(db: Session):
         ]
         chosen_title = random.choice(titles)
         
+        bug_key = f"{proj.key}-{i}"
+        existing_bug = db.query(Bug).filter_by(bug_key=bug_key).first()
+        if existing_bug:
+            created_bugs.append(existing_bug)
+            continue
+            
         bug = Bug(
-            bug_key=f"{proj.key}-{i}",
+            bug_key=bug_key,
             project_id=proj.id,
             title=chosen_title,
             description=f"Automated test suite and user reports indicate an issue with {comp}. {chosen_title}. Observed repeatedly under normal traffic conditions.",

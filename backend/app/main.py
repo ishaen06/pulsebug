@@ -105,3 +105,12 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "database": "connected", "ai_service": "ready"}
+
+@app.post(f"{api_prefix}/seed")
+async def trigger_seed():
+    db = SessionLocal()
+    try:
+        seed_database(db, force=True)
+        return {"status": "success", "message": "Database seeded with 65+ realistic test bugs, users, and projects"}
+    finally:
+        db.close()
