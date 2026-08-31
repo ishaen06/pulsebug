@@ -7,43 +7,18 @@ import { Sidebar } from './components/layout/Sidebar';
 import { IssuesPage } from './pages/IssuesPage';
 import { IssueDetailPage } from './pages/IssueDetailPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
-import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
-import { ResetPasswordPage } from './pages/ResetPasswordPage';
-import { LoginPage } from './pages/LoginPage';
 import { BugCreateModal } from './components/bugs/BugCreateModal';
 import { CommandPalette } from './components/common/CommandPalette';
 import { api } from './services/api';
 import { Bug } from './types';
 
 const MainApp: React.FC = () => {
-  const { user, loading: authLoading, currentProject, refreshProjects } = useAuth();
+  const { user, currentProject } = useAuth();
   const [currentView, setCurrentView] = useState<string>('issues');
   const [selectedBugId, setSelectedBugId] = useState<number | null>(null);
-  const [resetToken, setResetToken] = useState<string>('');
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
   const [isCommandOpen, setIsCommandOpen] = useState<boolean>(false);
   const [allBugs, setAllBugs] = useState<Bug[]>([]);
-
-  // Check URL path and query parameters for password reset & verification links on load
-  useEffect(() => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const tokenParam = urlParams.get('token');
-      const verifyEmailParam = urlParams.get('verify_email') || urlParams.get('email');
-      const path = window.location.pathname;
-
-      if (tokenParam || path.includes('/reset-password')) {
-        setResetToken(tokenParam || '');
-        setCurrentView('reset-password');
-      } else if (path.includes('/forgot-password')) {
-        setCurrentView('forgot-password');
-      } else if (verifyEmailParam || path.includes('/login') || path.includes('/register') || path.includes('/verify-email')) {
-        setCurrentView('login');
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
 
   const loadAllBugs = async () => {
     try {
@@ -55,9 +30,7 @@ const MainApp: React.FC = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      loadAllBugs();
-    }
+    loadAllBugs();
   }, [currentProject, user]);
 
   const handleSelectBug = (bug: Bug) => {
@@ -69,51 +42,6 @@ const MainApp: React.FC = () => {
     setSelectedBugId(bugId);
     setCurrentView('detail');
   };
-
-  // Full-screen Login & Registration & Email Verification View
-  if (!user || currentView === 'login') {
-    return (
-      <LoginPage
-        onSuccess={() => {
-          setCurrentView('issues');
-          refreshProjects();
-          loadAllBugs();
-        }}
-        onForgotPassword={() => setCurrentView('forgot-password')}
-      />
-    );
-  }
-
-  // Standalone full-screen pages for Forgot Password & Reset Password
-  if (currentView === 'forgot-password') {
-    return (
-      <ForgotPasswordPage
-        onBackToLogin={() => setCurrentView('login')}
-        onNavigateToReset={(token) => {
-          setResetToken(token);
-          setCurrentView('reset-password');
-        }}
-      />
-    );
-  }
-
-  if (currentView === 'reset-password') {
-    return (
-      <ResetPasswordPage
-        token={resetToken}
-        onGoToLogin={() => {
-          setResetToken('');
-          setCurrentView('login');
-          window.history.pushState({}, '', '/');
-        }}
-        onRequestNewLink={() => {
-          setResetToken('');
-          setCurrentView('forgot-password');
-          window.history.pushState({}, '', '/forgot-password');
-        }}
-      />
-    );
-  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-[#0b0f17] text-slate-900 dark:text-slate-100">
@@ -132,8 +60,6 @@ const MainApp: React.FC = () => {
         <Navbar
           onOpenCreate={() => setIsCreateOpen(true)}
           onOpenCommand={() => setIsCommandOpen(true)}
-          onOpenForgotPassword={() => setCurrentView('forgot-password')}
-          onOpenLogin={() => setCurrentView('login')}
         />
 
         {/* View Port */}

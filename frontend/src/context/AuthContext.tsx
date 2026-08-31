@@ -19,20 +19,31 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const DEFAULT_DEMO_USER: User = {
+  id: 1,
+  email: 'rahul@pulsebug.io',
+  full_name: 'Rahul Sharma',
+  role: 'DEVELOPER',
+  skills: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'FastAPI'],
+  avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  active_status: 'AVAILABLE',
+  is_verified: true,
+  created_at: new Date().toISOString()
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('pulsebug_token'));
-  const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<User>(DEFAULT_DEMO_USER);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('pulsebug_token') || 'pulsebug-demo-token');
+  const [loading, setLoading] = useState<boolean>(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProjectState] = useState<Project | null>(null);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([DEFAULT_DEMO_USER]);
 
   const refreshProjects = async () => {
     try {
       const projs = await api.getProjects();
       setProjects(projs);
       if (projs.length > 0 && !currentProject) {
-        // Default to first project (PAY)
         setCurrentProjectState(projs[0]);
       }
     } catch (err) {
@@ -43,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshUser = async () => {
     try {
       const u = await api.getMe();
-      setUser(u);
+      if (u) setUser(u);
     } catch (err) {
       console.error('Failed to refresh user:', err);
     }
@@ -52,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUsers = async () => {
     try {
       const uList = await api.getUsers();
-      setAllUsers(uList);
+      if (uList && uList.length > 0) setAllUsers(uList);
     } catch (err) {
       console.error('Failed to load users:', err);
     }
@@ -60,34 +71,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const initAuth = async () => {
-      setLoading(true);
       try {
-        if (!token) {
-          // Auto-login as default Developer for instant academic demo readiness
-          const res = await api.login('rahul@pulsebug.io', 'password123');
+        const res = await api.login('rahul@pulsebug.io', 'password123');
+        if (res && res.access_token) {
           localStorage.setItem('pulsebug_token', res.access_token);
           setToken(res.access_token);
-          setUser(res.user);
-        } else {
-          const u = await api.getMe();
-          setUser(u);
+          if (res.user) setUser(res.user);
         }
+      } catch (err) {
+        console.error('Auto-login initialization fallback:', err);
+      } finally {
         await refreshProjects();
         await fetchUsers();
-      } catch (err) {
-        console.error('Auth initialization error, falling back to demo login:', err);
-        try {
-          const res = await api.login('pm@pulsebug.io', 'password123');
-          localStorage.setItem('pulsebug_token', res.access_token);
-          setToken(res.access_token);
-          setUser(res.user);
-          await refreshProjects();
-          await fetchUsers();
-        } catch {
-          // ignore
-        }
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -109,8 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('pulsebug_token');
-    setToken(null);
-    setUser(null);
+    setToken('pulsebug-demo-token');
+    setUser(DEFAULT_DEMO_USER);
   };
 
   const switchUser = async (email: string) => {

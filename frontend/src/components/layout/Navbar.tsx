@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search, Bell, Sparkles, Sun, Moon, CheckCircle2, ChevronDown,
-  UserCheck, Shield, Layers, Plus, ExternalLink, KeyRound, LogOut
+  UserCheck, Shield, Layers, Plus, ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -12,12 +12,10 @@ import { Notification } from '../../types';
 interface NavbarProps {
   onOpenCreate: () => void;
   onOpenCommand: () => void;
-  onOpenForgotPassword: () => void;
-  onOpenLogin?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenCreate, onOpenCommand, onOpenForgotPassword, onOpenLogin }) => {
-  const { user, projects, currentProject, setCurrentProject, allUsers, switchUser, logout } = useAuth();
+export const Navbar: React.FC<NavbarProps> = ({ onOpenCreate, onOpenCommand }) => {
+  const { user, projects, currentProject, setCurrentProject, allUsers, switchUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { isConnected, lastEvent } = useWebSocket();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -303,31 +301,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCreate, onOpenCommand, onO
                   <span className="text-[10px] uppercase font-mono text-slate-400">{u.role}</span>
                 </button>
               ))}
-            </div>
-
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 px-2 mt-1 space-y-1">
-              <button
-                onClick={() => {
-                  setShowUserMenu(false);
-                  onOpenForgotPassword();
-                }}
-                className="w-full py-1.5 px-2 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-left flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <KeyRound className="w-3.5 h-3.5" />
-                <span>Forgot / Reset Password</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowUserMenu(false);
-                  logout();
-                  if (onOpenLogin) onOpenLogin();
-                }}
-                className="w-full py-1.5 px-2 rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-left flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign In / Create Account</span>
-              </button>
             </div>
           </div>
         </div>
